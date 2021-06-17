@@ -1,0 +1,34 @@
+#+TITLE: consult-eglot
+#+AUTHOR: Mohsin Kaleem
+
+
+
+A [[https://github.com/minad/consult][consult]]ing-read interface for [[https://github.com/joaotavora/eglot][eglot]].
+
+This package acts as a parallel of [[https://github.com/gagbo/consult-lsp][consult-lsp]] for eglot and provides a front-end
+interface for the ~workspace/symbols~ LSP procedure call.
+
+#+CAPTION: Obligatory screenshot of consult-eglot in action.
+[[file:.github/demo.png]]
+
+* Table of Contents                                                     :TOC:
+- [[#installation][Installation]]
+  - [[#manually][Manually]]
+  - [[#from-melpa][From MELPA]]
+  - [[#straight][straight]]
+
+* Installation
+** Manually
+   1. Clone the repo.
+   2. Add the repo path to your emacs ~load-path~.
+   3. Load it when needed.
+
+** From MELPA
+   TODO: Melpa support
+
+** straight
+   You can also install this package through the [[https://github.com/raxod502/straight.el][straight]] package manager.
+   #+begin_src emacs-lisp
+     (straight-use-package '(flymake-rest :host github
+                                          :repo "mohkale/consult-eglot"))
+   #+end_src
