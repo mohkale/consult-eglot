@@ -5,7 +5,7 @@
 ;; Author: mohsin kaleem <mohkale@kisara.moe>
 ;; Maintainer: Mohsin Kaleem
 ;; Version: 0.1
-;; Package-Requires: ((emacs "27.1") (eglot "5.0") (consult "0.8"))
+;; Package-Requires: ((emacs "27.1") (eglot "5.0") (consult "0.9"))
 ;; Homepage: https://github.com/mohkale/consult-eglot
 
 ;; Copyright (c) 2021 Mohsin Kaleem
@@ -148,14 +148,20 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
        ))))
 
 (defun consult-eglot--symbols--state ()
-  "State function for `consult-eglot-symbols' to preview candidates."
-  (let ((grep (consult--grep-state)))
+  "State function for `consult-eglot-symbols' to preview candidates.
+This is mostly just a copy-paste of `consult--grep-state' except it doesn't
+rely on regexp matching to extract the relevent file and column fields."
+  (let ((open (consult--temporary-files))
+        (jump (consult--jump-state)))
     (lambda (cand restore)
-      (cond
-       (restore (funcall grep nil restore))
-       (cand (funcall grep
-                      (consult-eglot--symbol-information-to-grep-params cand)
-                      restore))))))
+      (when restore
+        (funcall open))
+      (funcall jump
+               (and cand
+                    (pcase-let ((`(,file ,line ,col)
+                                 (consult-eglot--symbol-information-to-grep-params cand)))
+                      (consult--position-marker (funcall open file) line col)))
+               restore))))
 
 ;;;###autoload
 (defun consult-eglot-symbols ()
