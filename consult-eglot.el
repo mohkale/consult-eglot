@@ -5,7 +5,7 @@
 ;; Author: mohsin kaleem <mohkale@kisara.moe>
 ;; Maintainer: Mohsin Kaleem
 ;; Version: 0.1
-;; Package-Requires: ((emacs "27.1") (eglot "5.0") (consult "0.9"))
+;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.9"))
 ;; Homepage: https://github.com/mohkale/consult-eglot
 
 ;; Copyright (c) 2021 Mohsin Kaleem
