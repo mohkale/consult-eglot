@@ -36,6 +36,6 @@ interface for the ~workspace/symbols~ LSP procedure call.
 ** straight
    You can also install this package through the [[https://github.com/raxod502/straight.el][straight]] package manager.
    #+begin_src emacs-lisp
-     (straight-use-package '(flymake-rest :host github
-                                          :repo "mohkale/consult-eglot"))
+     (straight-use-package '(consult-eglot :host github
+                                           :repo "mohkale/consult-eglot"))
    #+end_src
