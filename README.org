@@ -24,7 +24,14 @@ interface for the ~workspace/symbols~ LSP procedure call.
    3. Load it when needed.
 
 ** From MELPA
-   TODO: Melpa support
+   This package is on [[https://github.com/melpa/melpa][MELPA]]. You can add this to your ~package-archives~ variable and
+   then install through ~M-x package-install~.
+
+   #+begin_src emacs-lisp
+     (push '("melpa" . "https://melpa.org/packages/") package-archives)
+     (package-refresh-contents)
+     (package-install 'consult-eglot)
+   #+end_src
 
 ** straight
    You can also install this package through the [[https://github.com/raxod502/straight.el][straight]] package manager.
