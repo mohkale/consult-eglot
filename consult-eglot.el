@@ -53,7 +53,7 @@
   :group 'eglot
   :group 'consult)
 
-(defcustom consult-eglot--symbols--narrow
+(defcustom consult-eglot-narrow
   '(;; Lowercase classes
     (?c . "Class")
     (?f . "Function")
@@ -85,7 +85,7 @@ For the format see `consult--read', for the value types see the
 values in `eglot--symbol-kind-names'."
   :type '(alist :key-type character :value-type string))
 
-(defun consult-eglot--symbols--make-async-source (async server)
+(defun consult-eglot--make-async-source (async server)
   "Search for symbols in a consult ASYNC source.
 Pipe a `consult--read' compatible async-source ASYNC to search for
 symbols in the workspace tied to SERVER."
@@ -109,7 +109,7 @@ symbols in the workspace tied to SERVER."
          (funcall async action)))
       (_ (funcall async action)))))
 
-(defun consult-eglot--symbols--transformer (symbol-info)
+(defun consult-eglot--transformer (symbol-info)
   "Default transformer to produce a completion candidate from SYMBOL-INFO.
 The produced candidate follows the same form as `consult--grep' however it
 contains the SYMBOL-INFO as the second field instead of the file URI."
@@ -132,8 +132,8 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
                                    (abbreviate-file-name uri-path)
                                  relative-uri-path))
                              line)))
-                   'consult--type (or (car (rassoc kind-name consult-eglot--symbols--narrow))
-                                      (car (rassoc "Other" consult-eglot--symbols--narrow)))
+                   'consult--type (or (car (rassoc kind-name consult-eglot-narrow))
+                                      (car (rassoc "Other" consult-eglot-narrow)))
                    'consult--candidate symbol-info)))
         res))))
 
@@ -147,7 +147,7 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
        0                                                  ; Column number
        ))))
 
-(defun consult-eglot--symbols--state ()
+(defun consult-eglot--state ()
   "State function for `consult-eglot-symbols' to preview candidates.
 This is mostly just a copy-paste of `consult--grep-state' except it doesn't
 rely on regexp matching to extract the relevent file and column fields."
@@ -179,8 +179,8 @@ rely on regexp matching to extract the relevent file and column fields."
               (thread-first
                   (consult--async-sink)
                 (consult--async-refresh-immediate)
-                (consult--async-map #'consult-eglot--symbols--transformer)
-                (consult-eglot--symbols--make-async-source server)
+                (consult--async-map #'consult-eglot--transformer)
+                (consult-eglot--make-async-source server)
                 (consult--async-throttle)
                 (consult--async-split))
               :history t
@@ -189,9 +189,9 @@ rely on regexp matching to extract the relevent file and column fields."
               :initial (consult--async-split-initial nil)
               :category 'consult-lsp-symbols
               :lookup #'consult--lookup-candidate
-              :group (consult--type-group consult-eglot--symbols--narrow)
-              :narrow (consult--type-narrow consult-eglot--symbols--narrow)
-              :state (consult-eglot--symbols--state)))
+              :group (consult--type-group consult-eglot-narrow)
+              :narrow (consult--type-narrow consult-eglot-narrow)
+              :state (consult-eglot--state)))
           (find-file path)
           (goto-char (point-min))
           (forward-line (- line 1))
