@@ -9,7 +9,7 @@ This package acts as a parallel of [[https://github.com/gagbo/consult-lsp][consu
 interface for the ~workspace/symbols~ LSP procedure call.
 
 #+CAPTION: Obligatory screenshot of consult-eglot in action.
-[[file:.github/demo.png]]
+[[https://user-images.githubusercontent.com/23294780/131529081-7b6ad89a-98c8-40f2-9ef8-184856f8e9ef.png]]
 
 * Table of Contents                                                     :TOC:
 - [[#installation][Installation]]
