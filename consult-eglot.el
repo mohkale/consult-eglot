@@ -85,6 +85,10 @@ For the format see `consult--read', for the value types see the
 values in `eglot--symbol-kind-names'."
   :type '(alist :key-type character :value-type string))
 
+(defcustom consult-eglot-show-kind-name t
+  "When true prefix completion candidates with their type."
+  :type 'boolean)
+
 (defun consult-eglot--make-async-source (async server)
   "Search for symbols in a consult ASYNC source.
 Pipe a `consult--read' compatible async-source ASYNC to search for
@@ -120,18 +124,20 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
              (kind-name (alist-get kind eglot--symbol-kind-names))
              (uri-path (eglot--uri-to-path uri))
              (res (propertize
-                   (format "%-7s %s %s"
-                           kind-name
-                           name
-                           (string-remove-suffix ":"
-                            (consult--format-location
-                             ;; If the src is relative to our project directory then use
-                             ;; the path from there, otherwise use the absolute file path.
-                             (let ((relative-uri-path (file-relative-name uri-path)))
-                               (if (string-prefix-p ".." relative-uri-path)
-                                   (abbreviate-file-name uri-path)
-                                 relative-uri-path))
-                             line)))
+                   (concat
+                    (when consult-eglot-show-kind-name
+                      (format "%-7s " kind-name))
+                    name
+                    " "
+                    (string-remove-suffix ":"
+                     (consult--format-location
+                      ;; If the src is relative to our project directory then use
+                      ;; the path from there, otherwise use the absolute file path.
+                      (let ((relative-uri-path (file-relative-name uri-path)))
+                        (if (string-prefix-p ".." relative-uri-path)
+                            (abbreviate-file-name uri-path)
+                          relative-uri-path))
+                      line)))
                    'consult--type (or (car (rassoc kind-name consult-eglot-narrow))
                                       (car (rassoc "Other" consult-eglot-narrow)))
                    'consult--candidate symbol-info)))
