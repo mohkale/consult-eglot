@@ -1,6 +1,8 @@
 #+TITLE: consult-eglot
 #+AUTHOR: Mohsin Kaleem
 
+#+html: <p align="right"><a href="https://melpa.org/#/consult-eglot"><img align="center" alt="MELPA" src="https://melpa.org/packages/consult-eglot-badge.svg"/></a></p>
+
 
 
 A [[https://github.com/minad/consult][consult]]ing-read interface for [[https://github.com/joaotavora/eglot][eglot]].
@@ -15,7 +17,6 @@ interface for the ~workspace/symbols~ LSP procedure call.
 - [[#installation][Installation]]
   - [[#manually][Manually]]
   - [[#from-melpa][From MELPA]]
-  - [[#straight][straight]]
 
 * Installation
 ** Manually
@@ -31,11 +32,4 @@ interface for the ~workspace/symbols~ LSP procedure call.
      (push '("melpa" . "https://melpa.org/packages/") package-archives)
      (package-refresh-contents)
      (package-install 'consult-eglot)
-   #+end_src
-
-** straight
-   You can also install this package through the [[https://github.com/raxod502/straight.el][straight]] package manager.
-   #+begin_src emacs-lisp
-     (straight-use-package '(consult-eglot :host github
-                                           :repo "mohkale/consult-eglot"))
    #+end_src
