@@ -5,7 +5,7 @@
 ;; Author: mohsin kaleem <mohkale@kisara.moe>
 ;; Maintainer: Mohsin Kaleem
 ;; Version: 0.1
-;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.9"))
+;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.9") (project "0.3.0"))
 ;; Homepage: https://github.com/mohkale/consult-eglot
 
 ;; Copyright (c) 2021 Mohsin Kaleem
@@ -176,7 +176,7 @@ rely on regexp matching to extract the relevent file and column fields."
   ;; Set `default-directory' here so we can show file names
   ;; relative to the project root.
   (let* ((server (eglot--current-server-or-lose))
-         (default-directory (or (cdr (eglot--project server))
+         (default-directory (or (project-root (eglot--project server))
                                 default-directory)))
     (if (eglot--server-capable :workspaceSymbolProvider)
         (cl-destructuring-bind (path line _col)
