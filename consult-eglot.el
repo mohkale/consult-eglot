@@ -4,8 +4,8 @@
 ;; Keywords: tools, completion, lsp
 ;; Author: mohsin kaleem <mohkale@kisara.moe>
 ;; Maintainer: Mohsin Kaleem
-;; Version: 0.1
-;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.9") (project "0.3.0"))
+;; Version: 0.2
+;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.16") (project "0.3.0"))
 ;; Homepage: https://github.com/mohkale/consult-eglot
 
 ;; Copyright (c) 2021 Mohsin Kaleem
@@ -159,15 +159,19 @@ This is mostly just a copy-paste of `consult--grep-state' except it doesn't
 rely on regexp matching to extract the relevent file and column fields."
   (let ((open (consult--temporary-files))
         (jump (consult--jump-state)))
-    (lambda (cand restore)
-      (when restore
-        (funcall open))
+    (lambda (action cand)
+      (when (eq action 'exit)
+        (funcall open)
+        (setq open nil))
       (funcall jump
+               action
                (and cand
-                    (pcase-let ((`(,file ,line ,col)
-                                 (consult-eglot--symbol-information-to-grep-params cand)))
-                      (consult--position-marker (funcall open file) line col)))
-               restore))))
+                    (pcase-let
+                        ((`(,file ,line ,col)
+                          (consult-eglot--symbol-information-to-grep-params cand)))
+                      (consult--position-marker
+                       (funcall (or open #'find-file) file)
+                       line col)))))))
 
 ;;;###autoload
 (defun consult-eglot-symbols ()
@@ -179,28 +183,24 @@ rely on regexp matching to extract the relevent file and column fields."
          (default-directory (or (project-root (eglot--project server))
                                 default-directory)))
     (if (eglot--server-capable :workspaceSymbolProvider)
-        (cl-destructuring-bind (path line _col)
-            (consult-eglot--symbol-information-to-grep-params
-             (consult--read
-              (thread-first
-                  (consult--async-sink)
-                (consult--async-refresh-immediate)
-                (consult--async-map #'consult-eglot--transformer)
-                (consult-eglot--make-async-source server)
-                (consult--async-throttle)
-                (consult--async-split))
-              :history t
-              :require-match t
-              :prompt "LSP Symbols: "
-              :initial (consult--async-split-initial nil)
-              :category 'consult-lsp-symbols
-              :lookup #'consult--lookup-candidate
-              :group (consult--type-group consult-eglot-narrow)
-              :narrow (consult--type-narrow consult-eglot-narrow)
-              :state (consult-eglot--state)))
-          (find-file path)
-          (goto-char (point-min))
-          (forward-line (- line 1))
+        (progn
+          (consult--read
+           (thread-first
+             (consult--async-sink)
+             (consult--async-refresh-immediate)
+             (consult--async-map #'consult-eglot--transformer)
+             (consult-eglot--make-async-source server)
+             (consult--async-throttle)
+             (consult--async-split))
+           :history t
+           :require-match t
+           :prompt "LSP Symbols: "
+           :initial (consult--async-split-initial nil)
+           :category 'consult-lsp-symbols
+           :lookup #'consult--lookup-candidate
+           :group (consult--type-group consult-eglot-narrow)
+           :narrow (consult--type-narrow consult-eglot-narrow)
+           :state (consult-eglot--state))
           (run-hooks 'consult-after-jump-hook))
      (user-error "Server doesn't support symbol search"))))
 
