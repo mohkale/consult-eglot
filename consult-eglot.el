@@ -53,6 +53,12 @@
   :group 'eglot
   :group 'consult)
 
+(defcustom consult-eglot-ignore-column nil
+  "When true `consult-eglot-symbols' only jumps to start of symbols line.
+Otherwise `consult-eglot-symbols' will go to the exact symbol of a matched
+candidate."
+  :type 'boolean)
+
 (defcustom consult-eglot-narrow
   '(;; Lowercase classes
     (?c . "Class")
@@ -150,8 +156,11 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
       (list
        (eglot--uri-to-path uri)                           ; URI
        (1+ (plist-get (plist-get range :start) :line))    ; Line number
-       0                                                  ; Column number
-       ))))
+       ; Column Number
+       (or
+        (and (not consult-eglot-ignore-column)
+             (plist-get (plist-get range :start) :character))
+        0)))))
 
 (defun consult-eglot--state ()
   "State function for `consult-eglot-symbols' to preview candidates.
