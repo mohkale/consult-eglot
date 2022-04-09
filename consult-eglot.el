@@ -128,26 +128,25 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
     (eglot--dbind ((Location) uri range) location
       (let* ((line (1+ (plist-get (plist-get range :start) :line)))
              (kind-name (alist-get kind eglot--symbol-kind-names))
-             (uri-path (eglot--uri-to-path uri))
-             (res (propertize
-                   (concat
-                    (when consult-eglot-show-kind-name
-                      (format "%-7s " kind-name))
-                    name
-                    " "
-                    (string-remove-suffix ":"
-                     (consult--format-location
-                      ;; If the src is relative to our project directory then use
-                      ;; the path from there, otherwise use the absolute file path.
-                      (let ((relative-uri-path (file-relative-name uri-path)))
-                        (if (string-prefix-p ".." relative-uri-path)
-                            (abbreviate-file-name uri-path)
-                          relative-uri-path))
-                      line)))
-                   'consult--type (or (car (rassoc kind-name consult-eglot-narrow))
-                                      (car (rassoc "Other" consult-eglot-narrow)))
-                   'consult--candidate symbol-info)))
-        res))))
+             (uri-path (eglot--uri-to-path uri)))
+        (propertize
+         (concat
+          (when consult-eglot-show-kind-name
+            (format "%-7s " kind-name))
+          name
+          " "
+          (string-remove-suffix ":"
+                                (consult--format-location
+                                 ;; If the src is relative to our project directory then use
+                                 ;; the path from there, otherwise use the absolute file path.
+                                 (let ((relative-uri-path (file-relative-name uri-path)))
+                                   (if (string-prefix-p ".." relative-uri-path)
+                                       (abbreviate-file-name uri-path)
+                                     relative-uri-path))
+                                 line)))
+         'consult--type (or (car (rassoc kind-name consult-eglot-narrow))
+                            (car (rassoc "Other" consult-eglot-narrow)))
+         'consult--candidate symbol-info)))))
 
 (defun consult-eglot--symbol-information-to-grep-params (symbol-info)
   "Extract grep parameters from SYMBOL-INFO."
