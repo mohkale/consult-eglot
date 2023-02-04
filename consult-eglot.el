@@ -5,7 +5,7 @@
 ;; Author: mohsin kaleem <mohkale@kisara.moe>
 ;; Maintainer: Mohsin Kaleem
 ;; Version: 0.2
-;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.16") (project "0.3.0"))
+;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.31") (project "0.3.0"))
 ;; Homepage: https://github.com/mohkale/consult-eglot
 
 ;; Copyright (c) 2021 Mohsin Kaleem
@@ -136,7 +136,7 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
           name
           " "
           (string-remove-suffix ":"
-                                (consult--format-location
+                                (consult--format-file-line-match
                                  ;; If the src is relative to our project directory then use
                                  ;; the path from there, otherwise use the absolute file path.
                                  (let ((relative-uri-path (file-relative-name uri-path)))
@@ -177,7 +177,7 @@ rely on regexp matching to extract the relevent file and column fields."
                     (pcase-let
                         ((`(,file ,line ,col)
                           (consult-eglot--symbol-information-to-grep-params cand)))
-                      (consult--position-marker
+                      (consult--marker-from-line-column
                        (funcall (or open #'find-file) file)
                        line col)))))))
 
