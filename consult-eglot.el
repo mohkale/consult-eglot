@@ -95,6 +95,15 @@ values in `eglot--symbol-kind-names'."
   "When true prefix completion candidates with their type."
   :type 'boolean)
 
+(defun consult-eglot--format-file-line-match (file line &optional match)
+  "Format string FILE:LINE:MATCH with faces."
+  (setq line (number-to-string line)
+        match (concat file ":" line (when match ":") match)
+        file (length file))
+  (put-text-property 0 file 'face 'consult-file match)
+  (put-text-property (1+ file) (+ 1 file (length line)) 'face 'consult-line-number match)
+  match)
+
 (defun consult-eglot--make-async-source (async server)
   "Search for symbols in a consult ASYNC source.
 Pipe a `consult--read' compatible async-source ASYNC to search for
@@ -136,7 +145,7 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
           name
           " "
           (string-remove-suffix ":"
-                                (consult--format-file-line-match
+                                (consult-eglot--format-file-line-match
                                  ;; If the src is relative to our project directory then use
                                  ;; the path from there, otherwise use the absolute file path.
                                  (let ((relative-uri-path (file-relative-name uri-path)))
