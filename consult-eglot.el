@@ -91,7 +91,7 @@ For the format see `consult--read', for the value types see the
 values in `eglot--symbol-kind-names'."
   :type '(alist :key-type character :value-type string))
 
-(defcustom consult-eglot-show-kind-name t
+(defcustom consult-eglot-show-kind-name nil
   "When true prefix completion candidates with their type."
   :type 'boolean)
 
