@@ -223,5 +223,45 @@ rely on regexp matching to extract the relevent file and column fields."
           (run-hooks 'consult-after-jump-hook))
      (user-error "Server doesn't support symbol search"))))
 
+;;; `consult-eglot-embark'.
+;; TODO: Extract into separate external package.
+
+(declare-function embark-consult-export-grep "embark-consult")
+(declare-function embark-consult-goto-grep "embark-consult")
+
+(defun consult-eglot-export-grep (candidates)
+  "Exporter for a `consult-eglot' session to a grep buffer."
+  (setq candidates (mapcar (apply-partially
+                            #'get-text-property
+                            0 'consult--candidate)
+                           candidates))
+  (let ((lines nil))
+    (dolist (symbol-info candidates)
+      (cl-destructuring-bind (file line _)
+          (consult-eglot--symbol-information-to-grep-params symbol-info)
+        (push (concat file
+                      ":" (number-to-string line)
+                      ;; ":" (number-to-string column)
+                      ": "
+                      (eglot--dbind ((SymbolInformation) name kind) symbol-info
+                        (concat
+                         (when consult-eglot-show-kind-name
+                           (when-let ((kind-name (alist-get kind eglot--symbol-kind-names)))
+                             kind-name))
+                         name)))
+              lines)))
+
+    (setq lines (nreverse lines))
+    (embark-consult-export-grep lines)))
+
+(with-eval-after-load 'embark-consult
+  (defvar embark-default-action-overrides)
+  (defvar embark-exporters-alist)
+
+  (setf (alist-get 'consult-lsp-symbols embark-default-action-overrides)
+        #'embark-consult-goto-grep)
+  (setf (alist-get 'consult-lsp-symbols embark-exporters-alist)
+        #'consult-eglot-export-grep))
+
 (provide 'consult-eglot)
 ;;; consult-eglot.el ends here
