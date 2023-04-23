@@ -190,6 +190,8 @@ rely on regexp matching to extract the relevent file and column fields."
                        (funcall (or open #'find-file) file)
                        line col)))))))
 
+(defvar consult-eglot--history nil)
+
 ;;;###autoload
 (defun consult-eglot-symbols ()
   "Interactively select a symbol from the current workspace."
@@ -209,10 +211,10 @@ rely on regexp matching to extract the relevent file and column fields."
              (consult-eglot--make-async-source server)
              (consult--async-throttle)
              (consult--async-split))
-           :history t
            :require-match t
            :prompt "LSP Symbols: "
            :initial (consult--async-split-initial nil)
+           :history '(:input consult-eglot--history)
            :category 'consult-lsp-symbols
            :lookup #'consult--lookup-candidate
            :group (consult--type-group consult-eglot-narrow)
