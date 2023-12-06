@@ -254,12 +254,32 @@ rely on regexp matching to extract the relevent file and column fields."
     (setq lines (nreverse lines))
     (embark-consult-export-grep lines)))
 
+(defun consult-eglot--symbol-position (location)
+  "Return the grep position marker for LOCATION."
+
+  (let ((symbol-info (get-text-property 0 'consult--candidate location)))
+    ;; TODO I suspect there's a better let form that can deconstruct symbol-info
+    (let* ((grep-params (consult-eglot--symbol-information-to-grep-params symbol-info))
+	   (file (car grep-params))
+	   (line (car (cdr grep-params)))
+	   (col (car (cdr (cdr grep-params)))))
+      (consult--marker-from-line-column (funcall #'find-file file) line (or col 0)))))
+
+(defun consult-eglot-goto-symbol (location)
+  "Go to LOCATION, which should include eglot symbol-info.
+
+This is a cut and paste of embark-consult-goto-grep replacing
+consult--grep-position with consult-eglot--symbol-position."
+
+  (consult--jump (consult-eglot--symbol-position location))
+  (pulse-momentary-highlight-one-line (point)))
+
 (with-eval-after-load 'embark-consult
   (defvar embark-default-action-overrides)
   (defvar embark-exporters-alist)
 
   (setf (alist-get 'consult-lsp-symbols embark-default-action-overrides)
-        #'embark-consult-goto-grep)
+        #'consult-eglot-goto-symbol)
   (setf (alist-get 'consult-lsp-symbols embark-exporters-alist)
         #'consult-eglot-export-grep))
 
