@@ -96,7 +96,7 @@ values in `eglot--symbol-kind-names'."
   :type 'boolean)
 
 (defun consult-eglot--format-file-line-match (file line &optional match)
-  "Format string FILE:LINE:MATCH with faces."
+  "Format string FILE LINE and MATCH with faces."
   (setq line (number-to-string line)
         match (concat file ":" line (when match ":") match)
         file (length file))
@@ -229,8 +229,10 @@ rely on regexp matching to extract the relevent file and column fields."
 (declare-function embark-consult-export-grep "embark-consult")
 (declare-function embark-consult-goto-grep "embark-consult")
 
-(defun consult-eglot-export-grep (candidates)
-  "Exporter for a `consult-eglot' session to a grep buffer."
+(defun consult-eglot-embark-export-grep (candidates)
+  "Exporter for a `consult-eglot' session to a grep buffer.
+CANDIDATES is the collection of completion candidates to include int he grep
+buffer."
   (setq candidates (mapcar (apply-partially
                             #'get-text-property
                             0 'consult--candidate)
@@ -254,14 +256,26 @@ rely on regexp matching to extract the relevent file and column fields."
     (setq lines (nreverse lines))
     (embark-consult-export-grep lines)))
 
+(define-obsolete-function-alias 'consult-eglot-export-grep 'consult-eglot-embark-export-grep "0.2")
+
+(defun consult-eglot-embark-goto-symbol (candidate)
+  "Jump to a `consult-eglot' CANDIDATE through `embark-act'."
+  (if-let ((symbol-info (get-text-property 0 'consult--candidate candidate)))
+      (cl-destructuring-bind (file line column)
+          (consult-eglot--symbol-information-to-grep-params symbol-info)
+        (consult--jump
+         (consult--marker-from-line-column
+          (find-file-noselect file) line column))
+        (pulse-momentary-highlight-one-line (point)))))
+
 (with-eval-after-load 'embark-consult
   (defvar embark-default-action-overrides)
   (defvar embark-exporters-alist)
 
   (setf (alist-get 'consult-lsp-symbols embark-default-action-overrides)
-        #'embark-consult-goto-grep)
+        #'consult-eglot-embark-goto-symbol)
   (setf (alist-get 'consult-lsp-symbols embark-exporters-alist)
-        #'consult-eglot-export-grep))
+        #'consult-eglot-embark-export-grep))
 
 (provide 'consult-eglot)
 ;;; consult-eglot.el ends here
