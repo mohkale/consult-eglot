@@ -190,6 +190,20 @@ rely on regexp matching to extract the relevent file and column fields."
                        (funcall (or open #'find-file) file)
                        line col)))))))
 
+(defun consult-eglot--server ()
+  "Return server supporting symbol search by buffer and project."
+  (cl-find-if
+   (lambda (server)
+     (and server
+          (let (;; Bind for eglot internal server usage in
+                ;; `eglot--server-capable'.
+                (eglot--cached-server server))
+            (eglot--server-capable :workspaceSymbolProvider))))
+   (cons (eglot-current-server)
+         (and-let* ((project (project-current))
+                    (servers (gethash project eglot--servers-by-project)))
+           servers))))
+
 (defvar consult-eglot--history nil)
 
 ;;;###autoload
@@ -198,30 +212,29 @@ rely on regexp matching to extract the relevent file and column fields."
   (interactive)
   ;; Set `default-directory' here so we can show file names
   ;; relative to the project root.
-  (let* ((server (eglot--current-server-or-lose))
-         (default-directory (or (project-root (eglot--project server))
-                                default-directory)))
-    (if (eglot--server-capable :workspaceSymbolProvider)
-        (progn
-          (consult--read
-           (thread-first
-             (consult--async-sink)
-             (consult--async-refresh-immediate)
-             (consult--async-map #'consult-eglot--transformer)
-             (consult-eglot--make-async-source server)
-             (consult--async-throttle)
-             (consult--async-split))
-           :require-match t
-           :prompt "LSP Symbols: "
-           :initial (consult--async-split-initial nil)
-           :history '(:input consult-eglot--history)
-           :category 'consult-lsp-symbols
-           :lookup #'consult--lookup-candidate
-           :group (consult--type-group consult-eglot-narrow)
-           :narrow (consult--type-narrow consult-eglot-narrow)
-           :state (consult-eglot--state))
-          (run-hooks 'consult-after-jump-hook))
-     (user-error "Server doesn't support symbol search"))))
+  (if-let* ((server (consult-eglot--server))
+            (default-directory (or (project-root (eglot--project server))
+                                   default-directory)))
+      (progn
+        (consult--read
+         (thread-first
+           (consult--async-sink)
+           (consult--async-refresh-immediate)
+           (consult--async-map #'consult-eglot--transformer)
+           (consult-eglot--make-async-source server)
+           (consult--async-throttle)
+           (consult--async-split))
+         :require-match t
+         :prompt "LSP Symbols: "
+         :initial (consult--async-split-initial nil)
+         :history '(:input consult-eglot--history)
+         :category 'consult-lsp-symbols
+         :lookup #'consult--lookup-candidate
+         :group (consult--type-group consult-eglot-narrow)
+         :narrow (consult--type-narrow consult-eglot-narrow)
+         :state (consult-eglot--state))
+        (run-hooks 'consult-after-jump-hook))
+    (user-error "No server supporting symbol search")))
 
 ;;; `consult-eglot-embark'.
 ;; TODO: Extract into separate external package.
