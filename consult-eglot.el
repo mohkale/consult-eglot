@@ -104,29 +104,33 @@ values in `eglot--symbol-kind-names'."
   (put-text-property (1+ file) (+ 1 file (length line)) 'face 'consult-line-number match)
   match)
 
-(defun consult-eglot--make-async-source (async server)
+(defun consult-eglot--make-async-source (async servers)
   "Search for symbols in a consult ASYNC source.
 Pipe a `consult--read' compatible async-source ASYNC to search for
-symbols in the workspace tied to SERVER."
+symbols in the workspace tied to SERVERS."
   (lambda (action)
     (pcase-exhaustive action
       ((or 'setup (pred stringp))
        (let ((query (if (stringp action) action "")))
-         (jsonrpc-async-request
-          server :workspace/symbol
-          `(:query ,query)
-          :success-fn
-          (lambda (resp)
-            (funcall async 'flush)
-            (funcall async (append resp nil)))
-          :error-fn
-          (eglot--lambda ((ResponseError) code message)
-            (message "%s: %s" code message))
-          :timeout-fn
-          (lambda ()
-            (message "error: request timed out")))
-         (funcall async action)))
-      (_ (funcall async action)))))
+         (cl-loop
+          with responses = nil
+          for server in servers
+          do (jsonrpc-async-request
+              server :workspace/symbol
+              `(:query ,query)
+              :success-fn
+              (lambda (resp)
+                (setq responses (append responses resp nil))
+                (funcall async 'flush)
+                (funcall async responses))
+              :error-fn
+              (eglot--lambda ((ResponseError) code message)
+                (message "%s: %s" code message))
+              :timeout-fn
+              (lambda ()
+                (message "error: request timed out"))))
+          (funcall async action)))
+       (_ (funcall async action)))))
 
 (defun consult-eglot--transformer (symbol-info)
   "Default transformer to produce a completion candidate from SYMBOL-INFO.
@@ -190,19 +194,20 @@ rely on regexp matching to extract the relevent file and column fields."
                        (funcall (or open #'find-file) file)
                        line col)))))))
 
-(defun consult-eglot--server ()
-  "Return server supporting symbol search by buffer and project."
-  (cl-find-if
+(defun consult-eglot--servers ()
+  "Return servers supporting symbol search by project."
+  (cl-delete-if-not
    (lambda (server)
      (and server
           (let (;; Bind for eglot internal server usage in
                 ;; `eglot--server-capable'.
                 (eglot--cached-server server))
             (eglot--server-capable :workspaceSymbolProvider))))
-   (cons (eglot-current-server)
-         (and-let* ((project (project-current))
-                    (servers (gethash project eglot--servers-by-project)))
-           servers))))
+   (if-let* ((project (project-current))
+             (servers (gethash project eglot--servers-by-project)))
+       servers
+     (list (eglot-current-server)))))
+
 
 (defvar consult-eglot--history nil)
 
@@ -212,16 +217,17 @@ rely on regexp matching to extract the relevent file and column fields."
   (interactive)
   ;; Set `default-directory' here so we can show file names
   ;; relative to the project root.
-  (if-let* ((server (consult-eglot--server))
-            (default-directory (or (project-root (eglot--project server))
-                                   default-directory)))
+  (if-let* ((servers (consult-eglot--servers))
+            (default-directory
+             (or (project-root (eglot--project (car servers)))
+                 default-directory)))
       (progn
         (consult--read
          (thread-first
            (consult--async-sink)
            (consult--async-refresh-immediate)
            (consult--async-map #'consult-eglot--transformer)
-           (consult-eglot--make-async-source server)
+           (consult-eglot--make-async-source servers)
            (consult--async-throttle)
            (consult--async-split))
          :require-match t
