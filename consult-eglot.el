@@ -141,7 +141,7 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
     (eglot--dbind ((Location) uri range) location
       (let* ((line (1+ (plist-get (plist-get range :start) :line)))
              (kind-name (alist-get kind eglot--symbol-kind-names))
-             (uri-path (eglot--uri-to-path uri)))
+             (uri-path (eglot-uri-to-path uri)))
         (propertize
          (concat
           (when consult-eglot-show-kind-name
@@ -166,7 +166,7 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
   (eglot--dbind ((SymbolInformation) location) symbol-info
     (eglot--dbind ((Location) uri range) location
       (list
-       (eglot--uri-to-path uri)                           ; URI
+       (eglot-uri-to-path uri)                           ; URI
        (1+ (plist-get (plist-get range :start) :line))    ; Line number
        ; Column Number
        (or
@@ -202,12 +202,11 @@ rely on regexp matching to extract the relevent file and column fields."
           (let (;; Bind for eglot internal server usage in
                 ;; `eglot--server-capable'.
                 (eglot--cached-server server))
-            (eglot--server-capable :workspaceSymbolProvider))))
+            (eglot-server-capable :workspaceSymbolProvider))))
    (if-let* ((project (project-current))
              (servers (gethash project eglot--servers-by-project)))
        servers
      (list (eglot-current-server)))))
-
 
 (defvar consult-eglot--history nil)
 
