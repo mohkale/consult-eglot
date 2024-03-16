@@ -59,6 +59,10 @@ Otherwise `consult-eglot-symbols' will go to the exact symbol of a matched
 candidate."
   :type 'boolean)
 
+(defcustom consult-eglot-sort-results t
+  "When true `consult-eglot-symbols' will pre-sort search results by score."
+  :type 'boolean)
+
 (defcustom consult-eglot-narrow
   '(;; Lowercase classes
     (?c . "Class")
@@ -119,6 +123,8 @@ symbols in the workspace tied to SERVERS."
               :success-fn
               (lambda (resp)
                 (setq responses (append responses resp nil))
+                (when consult-eglot-sort-results
+                  (setq responses (cl-sort responses #'> :key (lambda (c) (cl-getf c :score 0)))))
                 (funcall async 'flush)
                 (funcall async responses))
               :error-fn
@@ -227,6 +233,7 @@ rely on regexp matching to extract the relevent file and column fields."
            (consult--async-split))
          :require-match t
          :prompt "LSP Symbols: "
+         :sort (not consult-eglot-sort-results)
          :initial (consult--async-split-initial nil)
          :history '(:input consult-eglot--history)
          :category 'consult-eglot-symbols
