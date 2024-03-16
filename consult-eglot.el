@@ -91,9 +91,7 @@ For the format see `consult--read', for the value types see the
 values in `eglot--symbol-kind-names'."
   :type '(alist :key-type character :value-type string))
 
-(defcustom consult-eglot-show-kind-name nil
-  "When true prefix completion candidates with their type."
-  :type 'boolean)
+(make-obsolete 'consult-eglot-show-kind-name nil "0.3")
 
 (defun consult-eglot--format-file-line-match (file line &optional match)
   "Format string FILE LINE and MATCH with faces."
@@ -144,8 +142,6 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
              (uri-path (eglot-uri-to-path uri)))
         (propertize
          (concat
-          (when consult-eglot-show-kind-name
-            (format "%-7s " kind-name))
           name
           " "
           (string-remove-suffix ":"

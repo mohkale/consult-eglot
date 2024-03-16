@@ -53,12 +53,8 @@ buffer."
                       ":" (number-to-string line)
                       ;; ":" (number-to-string column)
                       ": "
-                      (eglot--dbind ((SymbolInformation) name kind) symbol-info
-                        (concat
-                         (when consult-eglot-show-kind-name
-                           (when-let ((kind-name (alist-get kind eglot--symbol-kind-names)))
-                             kind-name))
-                         name)))
+                      (eglot--dbind ((SymbolInformation) name) symbol-info
+                        name))
               lines)))
 
     (setq lines (nreverse lines))
