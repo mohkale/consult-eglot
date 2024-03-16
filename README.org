@@ -1,7 +1,10 @@
 #+TITLE: consult-eglot
 #+AUTHOR: Mohsin Kaleem
 
-#+html: <p align="right"><a href="https://melpa.org/#/consult-eglot"><img align="center" alt="MELPA" src="https://melpa.org/packages/consult-eglot-badge.svg"/></a></p>
+#+html: <p align="right">
+#+html: <a href="https://github.com/mohkale/consult-eglot" alt="lint" style="margin-right: 4px;"><img src="https://github.com/mohkale/consult-eglot/actions/workflows/lint.yml/badge.svg" /></a>
+#+html: <a href="https://melpa.org/#/consult-eglot"><img align="center" alt="MELPA" src="https://melpa.org/packages/consult-eglot-badge.svg"/></a>
+#+html: </p>
 
 
 
