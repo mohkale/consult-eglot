@@ -8,7 +8,7 @@
 ;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.31") (project "0.3.0"))
 ;; Homepage: https://github.com/mohkale/consult-eglot
 
-;; Copyright (c) 2021 Mohsin Kaleem
+;; Copyright (c) 2024 Mohsin Kaleem
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
 ;; of this software and associated documentation files (the "Software"), to deal
