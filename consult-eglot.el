@@ -4,7 +4,7 @@
 ;; Keywords: tools, completion, lsp
 ;; Author: mohsin kaleem <mohkale@kisara.moe>
 ;; Maintainer: Mohsin Kaleem
-;; Version: 0.2
+;; Version: 0.3
 ;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.31") (project "0.3.0"))
 ;; Homepage: https://github.com/mohkale/consult-eglot
 
@@ -233,67 +233,13 @@ rely on regexp matching to extract the relevent file and column fields."
          :prompt "LSP Symbols: "
          :initial (consult--async-split-initial nil)
          :history '(:input consult-eglot--history)
-         :category 'consult-lsp-symbols
+         :category 'consult-eglot-symbols
          :lookup #'consult--lookup-candidate
          :group (consult--type-group consult-eglot-narrow)
          :narrow (consult--type-narrow consult-eglot-narrow)
          :state (consult-eglot--state))
         (run-hooks 'consult-after-jump-hook))
     (user-error "No server supporting symbol search")))
-
-;;; `consult-eglot-embark'.
-;; TODO: Extract into separate external package.
-
-(declare-function embark-consult-export-grep "embark-consult")
-(declare-function embark-consult-goto-grep "embark-consult")
-
-(defun consult-eglot-embark-export-grep (candidates)
-  "Exporter for a `consult-eglot' session to a grep buffer.
-CANDIDATES is the collection of completion candidates to include int he grep
-buffer."
-  (setq candidates (mapcar (apply-partially
-                            #'get-text-property
-                            0 'consult--candidate)
-                           candidates))
-  (let ((lines nil))
-    (dolist (symbol-info candidates)
-      (cl-destructuring-bind (file line _)
-          (consult-eglot--symbol-information-to-grep-params symbol-info)
-        (push (concat file
-                      ":" (number-to-string line)
-                      ;; ":" (number-to-string column)
-                      ": "
-                      (eglot--dbind ((SymbolInformation) name kind) symbol-info
-                        (concat
-                         (when consult-eglot-show-kind-name
-                           (when-let ((kind-name (alist-get kind eglot--symbol-kind-names)))
-                             kind-name))
-                         name)))
-              lines)))
-
-    (setq lines (nreverse lines))
-    (embark-consult-export-grep lines)))
-
-(define-obsolete-function-alias 'consult-eglot-export-grep 'consult-eglot-embark-export-grep "0.2")
-
-(defun consult-eglot-embark-goto-symbol (candidate)
-  "Jump to a `consult-eglot' CANDIDATE through `embark-act'."
-  (if-let ((symbol-info (get-text-property 0 'consult--candidate candidate)))
-      (cl-destructuring-bind (file line column)
-          (consult-eglot--symbol-information-to-grep-params symbol-info)
-        (consult--jump
-         (consult--marker-from-line-column
-          (find-file-noselect file) line column))
-        (pulse-momentary-highlight-one-line (point)))))
-
-(with-eval-after-load 'embark-consult
-  (defvar embark-default-action-overrides)
-  (defvar embark-exporters-alist)
-
-  (setf (alist-get 'consult-lsp-symbols embark-default-action-overrides)
-        #'consult-eglot-embark-goto-symbol)
-  (setf (alist-get 'consult-lsp-symbols embark-exporters-alist)
-        #'consult-eglot-embark-export-grep))
 
 (provide 'consult-eglot)
 ;;; consult-eglot.el ends here

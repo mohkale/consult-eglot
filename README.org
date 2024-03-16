@@ -4,6 +4,7 @@
 #+html: <p align="right">
 #+html: <a href="https://github.com/mohkale/consult-eglot" alt="lint" style="margin-right: 4px;"><img src="https://github.com/mohkale/consult-eglot/actions/workflows/lint.yml/badge.svg" /></a>
 #+html: <a href="https://melpa.org/#/consult-eglot"><img align="center" alt="MELPA" src="https://melpa.org/packages/consult-eglot-badge.svg"/></a>
+#+html: <a href="https://melpa.org/#/consult-eglot-embark"><img align="center" alt="MELPA" src="https://melpa.org/packages/consult-eglot-embark-badge.svg"/></a>
 #+html: </p>
 
 
@@ -20,6 +21,8 @@ interface for the ~workspace/symbols~ LSP procedure call.
 - [[#installation][Installation]]
   - [[#manually][Manually]]
   - [[#from-melpa][From MELPA]]
+- [[#extensions][Extensions]]
+  - [[#consult-eglot-embark][Consult Eglot Embark]]
 
 * Installation
 ** Manually
@@ -35,4 +38,12 @@ interface for the ~workspace/symbols~ LSP procedure call.
      (push '("melpa" . "https://melpa.org/packages/") package-archives)
      (package-refresh-contents)
      (package-install 'consult-eglot)
+   #+end_src
+
+* Extensions
+** Consult Eglot Embark
+   Adds support for embark exports and action overrides to consult-eglot searches.
+
+   #+begin_src emacs-lisp
+     (package-install 'consult-eglot-embark)
    #+end_src

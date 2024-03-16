@@ -1,7 +1,7 @@
 SRC_DIR = .
 BIN_DIR = bin
 
-SRC      := $(wildcard $(SRC_DIR)/*.el)
+SRC      := $(wildcard $(SRC_DIR)/*.el $(SRC_DIR)/extensions/*/*.el)
 ELC      := $(patsubst $(SRC_DIR)/%.el,$(BIN_DIR)/%.elc,$(SRC))
 ELCHKDOC := $(patsubst $(SRC_DIR)/%.el,$(BIN_DIR)/%.checkdoc,$(SRC))
 
