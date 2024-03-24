@@ -36,6 +36,10 @@
 (require 'consult-eglot)
 (require 'embark-consult)
 
+(defgroup consult-eglot-embark nil
+  "Emabark compatible actions for `consult-eglot'."
+  :group 'consult-eglot)
+
 ;;;###autoload
 (defun consult-eglot-embark-export-grep (candidates)
   "Exporter for a `consult-eglot' session to a grep buffer.
@@ -72,14 +76,24 @@ buffer."
       (pulse-momentary-highlight-one-line (point)))))
 
 ;;;###autoload
-(with-eval-after-load 'embark-consult
-  (defvar embark-default-action-overrides)
-  (defvar embark-exporters-alist)
+(define-minor-mode consult-eglot-embark-mode
+  "Setup `consult-eglot' actions for embark."
+  :global t
+  :group 'consult-eglot-embark
+  (progn
+    (defvar embark-default-action-overrides)
+    (defvar embark-exporters-alist)
 
-  (setf (alist-get 'consult-eglot-symbols embark-default-action-overrides)
-        #'consult-eglot-embark-goto-symbol)
-  (setf (alist-get 'consult-eglot-symbols embark-exporters-alist)
-        #'consult-eglot-embark-export-grep))
+    (if consult-eglot-embark-mode
+        (progn
+          (setf (alist-get 'consult-eglot-symbols embark-default-action-overrides)
+                #'consult-eglot-embark-goto-symbol)
+          (setf (alist-get 'consult-eglot-symbols embark-exporters-alist)
+                #'consult-eglot-embark-export-grep))
+      (setq embark-default-action-overrides
+            (assq-delete-all 'consult-eglot-symbols embark-default-action-overrides)
+            embark-exporters-alist
+            (assq-delete-all 'consult-eglot-symbols embark-exporters-alist)))))
 
 (provide 'consult-eglot-embark)
 ;;; consult-eglot-embark.el ends here

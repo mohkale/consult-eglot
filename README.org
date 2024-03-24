@@ -46,4 +46,8 @@ interface for the ~workspace/symbols~ LSP procedure call.
 
    #+begin_src emacs-lisp
      (package-install 'consult-eglot-embark)
+     (with-eval-after-load 'embark
+       (with-eval-after-load 'consult-eglot
+         (require 'consult-eglot-embark)
+         (consult-eglot-embark-mode)))
    #+end_src
