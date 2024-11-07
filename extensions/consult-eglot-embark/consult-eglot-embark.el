@@ -67,7 +67,7 @@ buffer."
 ;;;###autoload
 (defun consult-eglot-embark-goto-symbol (candidate)
   "Jump to a `consult-eglot' CANDIDATE through `embark-act'."
-  (when-let ((symbol-info (get-text-property 0 'consult--candidate candidate)))
+  (when-let* ((symbol-info (get-text-property 0 'consult--candidate candidate)))
     (cl-destructuring-bind (file line column)
         (consult-eglot--symbol-information-to-grep-params symbol-info)
       (consult--jump
