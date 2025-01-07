@@ -204,7 +204,7 @@ rely on regexp matching to extract the relevent file and column fields."
           (let (;; Bind for eglot internal server usage in
                 ;; `eglot--server-capable'.
                 (eglot--cached-server server))
-            (eglot-server-capable :workspaceSymbolProvider))))
+            (eglot--server-capable :workspaceSymbolProvider))))
    (if-let* ((project (project-current))
              (servers (gethash project eglot--servers-by-project)))
        servers
