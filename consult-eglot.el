@@ -106,35 +106,36 @@ values in `eglot--symbol-kind-names'."
   (put-text-property (1+ file) (+ 1 file (length line)) 'face 'consult-line-number match)
   match)
 
-(defun consult-eglot--make-async-source (async servers)
+(defun consult-eglot--make-async-source (servers)
   "Search for symbols in a consult ASYNC source.
 Pipe a `consult--read' compatible async-source ASYNC to search for
 symbols in the workspace tied to SERVERS."
-  (lambda (action)
-    (pcase-exhaustive action
-      ((or 'setup (pred stringp))
-       (let ((query (if (stringp action) action "")))
-         (cl-loop
-          with responses = nil
-          for server in servers
-          do (jsonrpc-async-request
-              server :workspace/symbol
-              `(:query ,query)
-              :success-fn
-              (lambda (resp)
-                (setq responses (append responses resp nil))
-                (when consult-eglot-sort-results
-                  (setq responses (cl-sort responses #'> :key (lambda (c) (cl-getf c :score 0)))))
-                (funcall async 'flush)
-                (funcall async responses))
-              :error-fn
-              (eglot--lambda ((ResponseError) code message)
-                (message "%s: %s" code message))
-              :timeout-fn
-              (lambda ()
-                (message "error: request timed out"))))
-          (funcall async action)))
-       (_ (funcall async action)))))
+  (lambda (async)
+    (lambda (action)
+      (pcase-exhaustive action
+        ((or 'setup (pred stringp))
+         (let ((query (if (stringp action) action "")))
+           (cl-loop
+            with responses = nil
+            for server in servers
+            do (jsonrpc-async-request
+                server :workspace/symbol
+                `(:query ,query)
+                :success-fn
+                (lambda (resp)
+                  (setq responses (append responses resp nil))
+                  (when consult-eglot-sort-results
+                    (setq responses (cl-sort responses #'> :key (lambda (c) (cl-getf c :score 0)))))
+                  (funcall async 'flush)
+                  (funcall async responses))
+                :error-fn
+                (eglot--lambda ((ResponseError) code message)
+                  (message "%s: %s" code message))
+                :timeout-fn
+                (lambda ()
+                  (message "error: request timed out"))))
+            (funcall async action)))
+         (_ (funcall async action))))))
 
 (defun consult-eglot--transformer (symbol-info)
   "Default transformer to produce a completion candidate from SYMBOL-INFO.
@@ -224,17 +225,16 @@ rely on regexp matching to extract the relevent file and column fields."
                  default-directory)))
       (progn
         (consult--read
-         (thread-first
-           (consult--async-sink)
-           (consult--async-refresh-immediate)
-           (consult--async-map #'consult-eglot--transformer)
-           (consult-eglot--make-async-source servers)
-           (consult--async-throttle)
-           (consult--async-split))
+         (consult--async-pipeline
+          (consult--async-min-input)
+          (consult--async-throttle)
+          (consult-eglot--make-async-source servers)
+          (consult--async-map #'consult-eglot--transformer)
+          (consult--async-highlight))
          :require-match t
          :prompt "LSP Symbols: "
          :sort (not consult-eglot-sort-results)
-         :initial (consult--async-split-initial nil)
+         :initial nil
          :history '(:input consult-eglot--history)
          :category 'consult-eglot-symbols
          :lookup #'consult--lookup-candidate
