@@ -146,7 +146,7 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
     (eglot--dbind ((Location) uri range) location
       (let* ((line (1+ (plist-get (plist-get range :start) :line)))
              (kind-name (alist-get kind eglot--symbol-kind-names))
-             (uri-path (eglot-uri-to-path uri)))
+             (uri-path (eglot--uri-to-path uri)))
         (propertize
          (concat
           name
@@ -169,7 +169,7 @@ contains the SYMBOL-INFO as the second field instead of the file URI."
   (eglot--dbind ((SymbolInformation) location) symbol-info
     (eglot--dbind ((Location) uri range) location
       (list
-       (eglot-uri-to-path uri)                           ; URI
+       (eglot--uri-to-path uri)                           ; URI
        (1+ (plist-get (plist-get range :start) :line))    ; Line number
        ; Column Number
        (or
