@@ -4,7 +4,7 @@
 ;; Keywords: tools, completion, lsp
 ;; Author: mohsin kaleem <mohkale@kisara.moe>
 ;; Maintainer: Mohsin Kaleem
-;; Version: 0.4
+;; Version: 0.5
 ;; Package-Requires: ((emacs "27.1") (eglot "1.7") (consult "0.31") (project "0.3.0"))
 ;; Homepage: https://github.com/mohkale/consult-eglot
 
