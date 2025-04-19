@@ -19,26 +19,26 @@ interface for the ~workspace/symbols~ LSP procedure call.
 
 * Table of Contents                                                     :TOC:
 - [[#installation][Installation]]
-- [[#manually][Manually]]
-- [[#from-melpa][From MELPA]]
+  - [[#manually][Manually]]
+  - [[#from-melpa][From MELPA]]
 - [[#extensions][Extensions]]
-- [[#consult-eglot-embark][Consult Eglot Embark]]
+  - [[#consult-eglot-embark][Consult Eglot Embark]]
 
 * Installation
 ** Manually
-1. Clone the repo.
-2. Add the repo path to your emacs ~load-path~.
-3. Load it when needed.
+   1. Clone the repo.
+   2. Add the repo path to your emacs ~load-path~.
+   3. Load it when needed.
 
 ** From MELPA
-This package is on [[https://github.com/melpa/melpa][MELPA]]. You can add this to your ~package-archives~ variable and
-then install through ~M-x package-install~.
+   This package is on [[https://github.com/melpa/melpa][MELPA]]. You can add this to your ~package-archives~ variable and
+   then install through ~M-x package-install~.
 
-#+begin_src emacs-lisp
-(push '("melpa" . "https://melpa.org/packages/") package-archives)
-(package-refresh-contents)
-(package-install 'consult-eglot)
-#+end_src
+   #+begin_src emacs-lisp
+     (push '("melpa" . "https://melpa.org/packages/") package-archives)
+     (package-refresh-contents)
+     (package-install 'consult-eglot)
+   #+end_src
 
 * Usage
 ~consult-eglot~ provides one interactive function: ~consult-eglot-symbols~, that uses ~completing-read~ to filter symbols from your workspace.
@@ -57,12 +57,12 @@ Examples:
 
 * Extensions
 ** Consult Eglot Embark
-Adds support for embark exports and action overrides to consult-eglot searches.
+   Adds support for embark exports and action overrides to consult-eglot searches.
 
-#+begin_src emacs-lisp
-(package-install 'consult-eglot-embark)
-(with-eval-after-load 'embark
-  (with-eval-after-load 'consult-eglot
-    (require 'consult-eglot-embark)
-    (consult-eglot-embark-mode)))
-#+end_src
+   #+begin_src emacs-lisp
+     (package-install 'consult-eglot-embark)
+     (with-eval-after-load 'embark
+       (with-eval-after-load 'consult-eglot
+         (require 'consult-eglot-embark)
+         (consult-eglot-embark-mode)))
+   #+end_src
