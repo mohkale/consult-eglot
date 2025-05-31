@@ -40,6 +40,21 @@ interface for the ~workspace/symbols~ LSP procedure call.
      (package-install 'consult-eglot)
    #+end_src
 
+* Usage
+~consult-eglot~ provides one interactive function: ~consult-eglot-symbols~, that uses ~completing-read~ to filter symbols from your workspace.
+
+By default, it shows matches across your whole project according to the LSP server's =workspace/symbol= output. (Naturally, if your LSP server of choice doesn't support that feature, consult-eglot won't work.)
+
+** Narrowing
+To not show any and all textual matches, narrow down the kind of symbol that is being matched using [[https://github.com/minad/consult?tab=readme-ov-file#narrowing-and-grouping][=consult='s narrowing feature]].  Start your completing-read minibuffer prompt with one of the ~consult-narrow-key~ symbols as defined in the ~consult-eglot-narrow~ alist. 
+
+To explore these during ~completing-read~, it's a good idea to execute =M-x consult-narrow-help= during ~completing-read~, or create a key binding for easy access.
+
+Examples: 
+
+- =M-x consult-eglot-symbols v foo= will narrow to variables (=v=) that match "=foo="
+- =M-x consult-eglot-symbols M bar= will narrow to methods (=M=) that match "=bar="
+
 * Extensions
 ** Consult Eglot Embark
    Adds support for embark exports and action overrides to consult-eglot searches.
