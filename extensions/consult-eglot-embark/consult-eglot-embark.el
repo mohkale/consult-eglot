@@ -37,7 +37,7 @@
 (require 'embark-consult)
 
 (defgroup consult-eglot-embark nil
-  "Emabark compatible actions for `consult-eglot'."
+  "Embark compatible actions for `consult-eglot'."
   :group 'consult-eglot)
 
 ;;;###autoload
