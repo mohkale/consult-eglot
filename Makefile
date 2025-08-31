@@ -34,7 +34,7 @@ $(BIN_DIR)/%.checkdoc: $(SRC_DIR)/%.el
 	    --eval "(checkdoc-file \"$^\")" 2>&1 \
 		| sed "s_^$$(basename "$^"):_$^:_" \
 		| tee "$@" \
-		| grep -E -v -e "\.cask/.*(if|when)-let' is an obsolete macro" \
+		| grep -E -v -e "\.cask/.*(if|when)-let. is an obsolete macro" -e "Obsolete name argument.*package-directory-recipe" \
 	    | grep . && exit 1 || true
 
 .PHONY: compile
@@ -47,7 +47,7 @@ $(BIN_DIR)/%.elc: $(SRC_DIR)/%.el
 	    -L . \
 	    --eval '(setq create-lockfiles nil)' \
 	    -f batch-byte-compile "$^" 2>&1 \
-		| grep -v -E -e "^Wrote" -e "^Loading" -e "\.cask/.*(if|when)-let' is an obsolete macro" \
+		| grep -v -E -e "^Wrote" -e "^Loading" -e "\.cask/.*(if|when)-let. is an obsolete macro" -e "Obsolete name argument.*package-directory-recipe" \
 		| grep . && exit 1 || true ;\
 	mv -f "$^c" "$@"
 
