@@ -106,6 +106,19 @@ values in `eglot--symbol-kind-names'."
   (put-text-property (1+ file) (+ 1 file (length line)) 'face 'consult-line-number match)
   match)
 
+(defun consult-eglot--compare-responses (a b)
+  "Predicate for comparing two responses. If scores are the same, sort
+lexicographically."
+  (let ((score_a (cl-getf a :score 0))
+        (score_b (cl-getf b :score 0)))
+
+    (if (= score_a score_b)
+        (let ((name_a (cl-getf a :name))
+              (name_b (cl-getf b :name)))
+          (string< name_a name_b))
+      (> score_a score_b))))
+
+
 (defun consult-eglot--make-async-source (servers)
   "Search for symbols in a consult ASYNC source.
 Pipe a `consult--read' compatible async-source ASYNC to search for
@@ -125,7 +138,8 @@ symbols in the workspace tied to SERVERS."
                 (lambda (resp)
                   (setq responses (append responses resp nil))
                   (when consult-eglot-sort-results
-                    (setq responses (cl-sort responses #'> :key (lambda (c) (cl-getf c :score 0)))))
+                    (setq responses
+                          (cl-sort responses #'consult-eglot--compare-responses)))
                   (funcall async 'flush)
                   (funcall async responses))
                 :error-fn
