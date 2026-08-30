@@ -11,7 +11,7 @@ EMACS ?= cask emacs \
 $(V).SILENT:
 
 .PHONY: ci/cd
-ci/cd: lint
+ci/cd: lint test
 
 .PHONY: configure
 configure: .cask
@@ -21,6 +21,15 @@ configure: .cask
 
 .PHONY: lint
 lint: compile checkdoc
+
+.PHONY: test
+test: configure
+	$(EMACS) -Q --batch \
+	    -L . \
+	    -L extensions/consult-eglot-embark \
+	    -L tests \
+	    -l tests/consult-eglot-embark-test.el \
+	    -f ert-run-tests-batch-and-exit
 
 .PHONY: checkdoc
 checkdoc: configure $(ELCHKDOC)
