@@ -36,6 +36,7 @@
 (require 'consult-eglot)
 (require 'embark-consult)
 (require 'eglot)
+(require 'seq)
 (require 'subr-x)
 
 (defgroup consult-eglot-embark nil
@@ -104,10 +105,71 @@ When ACTION-KIND is non-nil, only request actions of that LSP kind."
       (eglot-execute (car payload) (cdr payload))
     (user-error "Candidate does not carry an Eglot code action")))
 
+(defun consult-eglot-embark--action-command (server action)
+  "Return an Embark command which executes ACTION using SERVER."
+  (let ((command (make-symbol (plist-get action :title))))
+    (fset command
+          (lambda (_target)
+            (interactive "sTarget: ")
+            (eglot-execute server action)))
+    command))
+
+(defun consult-eglot-embark--action-key (title used base-map)
+  "Choose a mnemonic key from TITLE absent from USED and BASE-MAP."
+  (or (seq-find (lambda (key)
+                  (and (not (member key used))
+                       (not (lookup-key base-map (kbd key)))))
+                (append (mapcar (lambda (word) (substring word 0 1))
+                                (split-string (downcase title) "[^[:alnum:]]+" t))
+                        (mapcar #'char-to-string
+                                (string-to-list (downcase title)))
+                        (mapcar #'char-to-string
+                                (string-to-list "abcdefghijklmnopqrstuvwxyz0123456789"))))
+      (user-error "Too many code actions for the Embark keymap")))
+
+(defun consult-eglot-embark--action-map (server actions base-map)
+  "Return direct Embark entries for SERVER's ACTIONS alongside BASE-MAP."
+  (let ((map (make-sparse-keymap))
+        used)
+    (dolist (action actions)
+      (let* ((title (plist-get action :title))
+             (key (consult-eglot-embark--action-key title used base-map))
+             (command (consult-eglot-embark--action-command server action)))
+        (push key used)
+        (define-key map (kbd key) command)))
+    map))
+
 (defun consult-eglot-embark-code-actions-at-point (_target)
   "Select an Eglot code action at point for an Embark TARGET."
   (apply #'consult-eglot-embark-code-actions
          (consult-eglot-embark--code-action-bounds)))
+
+(defun consult-eglot-embark--actions-at-point-map (base-map)
+  "Return applicable Eglot actions at point as an Embark map.
+BASE-MAP is preserved: generated action keys never shadow its bindings."
+  (when (and (bound-and-true-p eglot--managed-mode)
+             (eglot-current-server)
+             (not (minibufferp)))
+    (pcase-let* ((server (eglot-current-server))
+                 (`(,beg ,end) (consult-eglot-embark--code-action-bounds))
+                 (actions (eglot-code-actions beg end nil nil)))
+      (when actions
+        (consult-eglot-embark--action-map server actions base-map)))))
+
+(defun consult-eglot-embark--augment-action-keymap
+    (original type cycle)
+  "Add applicable Eglot actions to Embark's ordinary TYPE action map.
+ORIGINAL is Embark's internal action-map constructor and CYCLE is forwarded
+unchanged.  Keeping this adaptation here makes the dependency on Embark's
+internal constructor explicit and easy to update if that API changes."
+  (let* ((base-map (funcall original type cycle))
+         (action-map
+          (condition-case nil
+              (consult-eglot-embark--actions-at-point-map base-map)
+            (error nil))))
+    (if action-map
+        (make-composed-keymap action-map base-map)
+      base-map)))
 
 ;;;###autoload
 (defun consult-eglot-embark-export-grep (candidates)
@@ -163,7 +225,9 @@ buffer."
           (setf (alist-get 'eglot-code-action embark-keymap-alist)
                 'consult-eglot-embark-code-action-map)
           (setf (alist-get 'eglot-code-action embark-default-action-overrides)
-                #'consult-eglot-embark-execute-code-action))
+                #'consult-eglot-embark-execute-code-action)
+          (advice-add 'embark--action-keymap :around
+                      #'consult-eglot-embark--augment-action-keymap))
       (setq embark-default-action-overrides
             (assq-delete-all
              'eglot-code-action
@@ -172,7 +236,9 @@ buffer."
             embark-exporters-alist
             (assq-delete-all 'consult-eglot-symbols embark-exporters-alist)
             embark-keymap-alist
-            (assq-delete-all 'eglot-code-action embark-keymap-alist)))))
+            (assq-delete-all 'eglot-code-action embark-keymap-alist))
+      (advice-remove 'embark--action-keymap
+                     #'consult-eglot-embark--augment-action-keymap))))
 
 (provide 'consult-eglot-embark)
 ;;; consult-eglot-embark.el ends here

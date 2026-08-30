@@ -46,6 +46,65 @@
        (consult-eglot-embark--code-action-candidate server action)))
     (should (equal executed (cons server action)))))
 
+(ert-deftest consult-eglot-embark-augments-symbol-map-with-code-actions ()
+  (with-temp-buffer
+    (insert "example")
+    (goto-char 4)
+    (let ((eglot--managed-mode t)
+          (base-map (let ((map (make-sparse-keymap)))
+                      (define-key map (kbd "x") #'ignore)
+                      map)))
+      (cl-letf (((symbol-function 'eglot-current-server)
+                 (lambda () 'server))
+                ((symbol-function 'eglot-code-actions)
+                 (lambda (&rest _)
+                   '((:title "Format buffer" :kind "source.format")
+                     (:title "Rename symbol" :kind "refactor.rename")))))
+        (let ((map (consult-eglot-embark--augment-action-keymap
+                    (lambda (_type _cycle) base-map) 'symbol nil)))
+          (should (eq (lookup-key map (kbd "x")) #'ignore))
+          (should (commandp (lookup-key map (kbd "f"))))
+          (should (commandp (lookup-key map (kbd "r")))))))))
+
+(ert-deftest consult-eglot-embark-generated-action-executes-payload ()
+  (let* ((server 'server)
+         (action '(:title "Apply fix" :kind "quickfix" :data (:id 7)))
+         (map (consult-eglot-embark--action-map
+               server (list action) (make-sparse-keymap)))
+         executed)
+    (cl-letf (((symbol-function 'eglot-execute)
+               (lambda (actual-server actual-action)
+                 (setq executed (cons actual-server actual-action)))))
+      (funcall (lookup-key map (kbd "a")) nil))
+    (should (equal executed (cons server action)))))
+
+(ert-deftest consult-eglot-embark-generated-actions-avoid-existing-keys ()
+  (let ((base-map (let ((map (make-sparse-keymap)))
+                    (define-key map (kbd "f") #'ignore)
+                    map)))
+    (should (equal
+             "b"
+             (consult-eglot-embark--action-key
+              "Format buffer" nil base-map)))))
+
+(ert-deftest consult-eglot-embark-uses-active-region-for-augmented-actions ()
+  (with-temp-buffer
+    (insert "some text")
+    (goto-char 1)
+    (push-mark 5 t t)
+    (let ((eglot--managed-mode t)
+          (transient-mark-mode t)
+          requested-bounds)
+      (cl-letf (((symbol-function 'eglot-current-server)
+                 (lambda () 'server))
+                ((symbol-function 'eglot-code-actions)
+                 (lambda (beg end &rest _)
+                   (setq requested-bounds (list beg end))
+                   nil)))
+        (consult-eglot-embark--augment-action-keymap
+         (lambda (_type _cycle) (make-sparse-keymap)) 'region nil)
+        (should (equal requested-bounds '(1 5)))))))
+
 (ert-deftest consult-eglot-embark-mode-registers-code-action-support ()
   (let ((embark-default-action-overrides nil)
         (embark-exporters-alist nil)
@@ -55,8 +114,14 @@
           (consult-eglot-embark-mode 1)
           (should (eq (alist-get 'eglot-code-action embark-keymap-alist)
                       'consult-eglot-embark-code-action-map))
+          (should (advice-member-p
+                   #'consult-eglot-embark--augment-action-keymap
+                   'embark--action-keymap))
           (consult-eglot-embark-mode -1)
-          (should-not (assq 'eglot-code-action embark-keymap-alist)))
+          (should-not (assq 'eglot-code-action embark-keymap-alist))
+          (should-not (advice-member-p
+                       #'consult-eglot-embark--augment-action-keymap
+                       'embark--action-keymap)))
       (consult-eglot-embark-mode -1))))
 
 (provide 'consult-eglot-embark-test)

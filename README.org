@@ -66,3 +66,12 @@ Examples:
          (require 'consult-eglot-embark)
          (consult-eglot-embark-mode)))
    #+end_src
+
+   The extension also integrates Eglot code actions.  In an Eglot-managed
+   buffer, =embark-act= adds the code actions applicable at point, or to the
+   active region, directly to the ordinary Embark action map.  Generated
+   mnemonic keys do not replace bindings already present in that map.
+
+   =M-x consult-eglot-embark-code-actions= provides a Consult picker for the
+   same actions.  Its candidates retain the complete LSP payload, including
+   unresolved actions, and can themselves be acted on through Embark.
